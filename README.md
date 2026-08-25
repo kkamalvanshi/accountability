@@ -20,6 +20,9 @@ Each package is independently deployable — see [`docs/DEPLOY.md`](docs/DEPLOY.
 full step-by-step (WHOOP app registration, `wrangler` secrets, KV namespace creation, adding
 both URLs as custom connectors in Claude).
 
+Standing preferences that feed the bedtime formula (currently just target wake time) live in
+[`CLAUDE.md`](CLAUDE.md) — check there before computing a bedtime from `get_last_sleep`.
+
 ## Security notes
 
 - No vendor credentials are committed anywhere in this repo. `.dev.vars.example` in each

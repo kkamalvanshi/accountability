@@ -51,6 +51,10 @@ Add `https://whoop-connector.<you>.workers.dev/mcp` as a custom connector in Cla
 connector settings. Test with a read-only call to `get_recovery` before wiring it into
 anything automated.
 
+When you do use `get_last_sleep` to compute a bedtime, check [`CLAUDE.md`](../CLAUDE.md)
+first — it holds the standing target wake time the formula needs and isn't something
+`get_last_sleep` itself knows.
+
 ## 2. Sleep.me connector
 
 Simpler — no OAuth, just a bearer token you already have.
