@@ -75,13 +75,15 @@ device's real `device_id` and status field names.
 ## 3. A note on exact field names
 
 Both clients were built directly against real specs (WHOOP's `openapi.json`, Sleep.me's
-Postman collection) — not guessed. One gap: the Sleep.me collection shows *requests* only,
-not example response bodies for `GET /devices` / `GET /devices/{id}`, so
-`sleepme-connector/src/sleepme-client.ts` deliberately returns those responses as-is rather
-than reshaping them into an assumed schema. After your first real `list_bed_devices` /
-`get_bed_status` call, if you want the response reshaped into cleaner named fields (like the
-WHOOP client does), that's a contained change in `sleepme-client.ts` once the real field
-names are visible.
+Postman collection) — not guessed. The one gap (the Postman collection showed requests only,
+not response bodies for `GET /devices` / `GET /devices/{id}`) is now closed: confirmed live
+against the real "Dock" device on 2026-08-25. `GET /devices` returns a bare array of
+`{id, name, attachments}`; `GET /devices/{id}` returns `{about, control, status}`, with
+`set_temperature_f` and `thermal_control_status` under `control` and connection state under
+`status` — see the typed interfaces in `sleepme-connector/src/sleepme-client.ts`. The one
+remaining assumption: `PATCH /devices/{id}`'s response is assumed to mirror that same
+`{about, control, status}` shape (only `GET` has been captured live so far) — noted inline
+in `setDeviceTemp` if that ever needs correcting.
 
 ## 4. Local testing (optional)
 
