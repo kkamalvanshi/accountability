@@ -47,7 +47,18 @@ export interface DeviceSummary {
   [key: string]: unknown;
 }
 
-/** GET/PATCH /devices/{id} — the device's full current status. */
+/** The `control` sub-object shape, also used standalone below (PATCH's response). */
+export interface DeviceControl {
+  brightness_level?: number;
+  display_temperature_unit?: "f" | "c";
+  set_temperature_c?: number;
+  set_temperature_f?: number;
+  thermal_control_status?: "active" | "standby";
+  time_zone?: string;
+  [key: string]: unknown;
+}
+
+/** GET /devices/{id} — the device's full current status. */
 export interface DeviceStatus {
   about?: {
     firmware_version?: string;
@@ -58,15 +69,7 @@ export interface DeviceStatus {
     serial_number?: string;
     [key: string]: unknown;
   };
-  control?: {
-    brightness_level?: number;
-    display_temperature_unit?: "f" | "c";
-    set_temperature_c?: number;
-    set_temperature_f?: number;
-    thermal_control_status?: "active" | "standby";
-    time_zone?: string;
-    [key: string]: unknown;
-  };
+  control?: DeviceControl;
   status?: {
     is_connected?: boolean;
     is_water_low?: boolean;
@@ -99,10 +102,10 @@ export async function setDeviceTemp(
   env: SleepMeEnv,
   deviceId: string,
   input: SetTempInput
-): Promise<DeviceStatus> {
-  // Assumed to return the same {about, control, status} shape as GET — PATCH hasn't been
-  // captured live yet, only GET has. If that assumption's wrong, this is the one spot to fix.
-  return sleepmeFetch<DeviceStatus>(env, `/devices/${encodeURIComponent(deviceId)}`, {
+): Promise<DeviceControl> {
+  // Confirmed live 2026-08-25: unlike GET (which wraps in {about, control, status}), PATCH
+  // returns the `control` fields flattened at the top level — not the full nested shape.
+  return sleepmeFetch<DeviceControl>(env, `/devices/${encodeURIComponent(deviceId)}`, {
     method: "PATCH",
     body: JSON.stringify(input),
   });
