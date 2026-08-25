@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 # then paste the returned id below.
 [[kv_namespaces]]
 binding = "CURVE"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "ce2385cf54844e46b517ecfbd6752b7b"
 
 # McpAgent runs each MCP session as a Durable Object. "MCP_OBJECT" is the binding name
 # McpAgent.serve() looks for by default.
