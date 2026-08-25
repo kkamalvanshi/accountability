@@ -1,0 +1,28 @@
+name = "sleepme-connector"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Holds the currently-scheduled bedtime temperature curve, if any.
+# Create with: wrangler kv namespace create CURVE
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "CURVE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# McpAgent runs each MCP session as a Durable Object. "MCP_OBJECT" is the binding name
+# McpAgent.serve() looks for by default.
+[[durable_objects.bindings]]
+name = "MCP_OBJECT"
+class_name = "SleepMeMCP"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SleepMeMCP"]
+
+# Checks every 5 minutes for a due curve setpoint and pushes it to the device.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Secrets (never put real values here — set with `wrangler secret put SLEEPME_API_TOKEN`):
+#   SLEEPME_API_TOKEN

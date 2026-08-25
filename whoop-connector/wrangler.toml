@@ -1,0 +1,25 @@
+name = "whoop-connector"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Holds the OAuth access/refresh token for the single connected WHOOP account.
+# Create with: wrangler kv namespace create TOKENS
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "TOKENS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# McpAgent runs each MCP session as a Durable Object. "MCP_OBJECT" is the binding name
+# McpAgent.serve() looks for by default.
+[[durable_objects.bindings]]
+name = "MCP_OBJECT"
+class_name = "WhoopMCP"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["WhoopMCP"]
+
+# Secrets (never put real values here — set with `wrangler secret put <NAME>`):
+#   WHOOP_CLIENT_ID
+#   WHOOP_CLIENT_SECRET
