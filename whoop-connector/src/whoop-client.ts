@@ -9,6 +9,12 @@ import { getValidAccessToken, type WhoopEnv } from "./oauth";
 const BASE = "https://api.prod.whoop.com/developer";
 const MILLI_PER_HOUR = 3_600_000;
 const DEFAULT_ONSET_BUFFER_MINUTES = 15;
+// The efficiency-refined onset buffer (needHours * (1/efficiency - 1) * 60) conflates a whole
+// night's awake time (disturbances, mid-sleep wakeups) with sleep-onset latency, which is all
+// "onset buffer" is supposed to mean — on a rough, low-efficiency night it blows up to hours,
+// not minutes (confirmed live: 74% efficiency produced ~180 min). Past this cap, fall back to
+// the flat default rather than feeding a bedtime formula a multi-hour distortion.
+const MAX_ONSET_BUFFER_MINUTES = 60;
 
 async function whoopGet<T>(env: WhoopEnv, path: string): Promise<T> {
   const token = await getValidAccessToken(env);
@@ -116,8 +122,13 @@ export interface LastSleepResult {
   /** Sum of the four sleep_needed ms fields, in hours — WHOOP's own number, not reimplemented. */
   sleep_need_hours?: number;
   sleep_need_breakdown_ms?: SleepNeeded;
-  /** Default 15 min; refined to need_hrs * (1/efficiency - 1) * 60 once efficiency is known. */
+  /** Default 15 min; refined to need_hrs * (1/efficiency - 1) * 60 once efficiency is known —
+   * but capped at MAX_ONSET_BUFFER_MINUTES, falling back to the default above that, since the
+   * refined formula conflates a whole night's awake time with sleep-onset latency specifically. */
   onset_buffer_minutes?: number;
+  /** The refined value BEFORE the cap above, when efficiency was available — exposed for
+   * transparency even when onset_buffer_minutes falls back to the default because of it. */
+  onset_buffer_minutes_uncapped?: number;
   sleep_efficiency_percentage?: number;
   sleep_performance_percentage?: number;
   sleep_consistency_percentage?: number;
@@ -163,9 +174,17 @@ export async function getLastSleep(env: WhoopEnv): Promise<LastSleepResult> {
     result.sleep_consistency_percentage = score.sleep_consistency_percentage;
     result.respiratory_rate = score.respiratory_rate;
 
-    result.onset_buffer_minutes =
+    const refinedOnsetBuffer =
       score.sleep_efficiency_percentage && score.sleep_efficiency_percentage > 0
         ? round2(needHours * (100 / score.sleep_efficiency_percentage - 1) * 60)
+        : null;
+
+    if (refinedOnsetBuffer !== null) {
+      result.onset_buffer_minutes_uncapped = refinedOnsetBuffer;
+    }
+    result.onset_buffer_minutes =
+      refinedOnsetBuffer !== null && refinedOnsetBuffer <= MAX_ONSET_BUFFER_MINUTES
+        ? refinedOnsetBuffer
         : DEFAULT_ONSET_BUFFER_MINUTES;
 
     const stages = score.stage_summary;

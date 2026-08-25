@@ -10,10 +10,11 @@ export class WhoopMCP extends McpAgent<WhoopEnv> {
     this.server.tool(
       "get_last_sleep",
       "Most recent WHOOP sleep record: stages, efficiency, and the computed sleep_need_hours " +
-        "(sum of WHOOP's own sleep_needed components) plus onset_buffer_minutes. To get " +
-        "tonight's bedtime, take a fixed wake time (from the calendar or a stated habit) and " +
-        "compute wake_time - sleep_need_hours - onset_buffer_minutes yourself — this tool " +
-        "reports WHOOP's numbers, it does not pick a bedtime.",
+        "(sum of WHOOP's own sleep_needed components) plus onset_buffer_minutes (capped at 60 " +
+        "min — see onset_buffer_minutes_uncapped for the raw efficiency-refined value on rough " +
+        "nights). To get tonight's bedtime, take a fixed wake time (from the calendar or a " +
+        "stated habit) and compute wake_time - sleep_need_hours - onset_buffer_minutes " +
+        "yourself — this tool reports WHOOP's numbers, it does not pick a bedtime.",
       {},
       async () => ({
         content: [{ type: "text", text: JSON.stringify(await getLastSleep(this.env), null, 2) }],
